@@ -14,7 +14,7 @@
 #include <athena/MemoryReader.hpp>
 #include <athena/VectorWriter.hpp>
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__MINGW32__)
 #include <fcntl.h>
 #else
 #include <sys/utime.h>
@@ -514,19 +514,21 @@ void AudioGroupSampleDirectory::EntryData::patchMetadataWAV(std::string_view wav
 
 /* File timestamps reflect actual audio content, not loop/pitch data */
 static void SetAudioFileTime(const std::string& path, const Sstat& stat) {
-#if _WIN32
+#if _WIN32 && !defined(__MINGW32__)
   __utimbuf64 times = {stat.st_atime, stat.st_mtime};
   const nowide::wstackstring wpath(path);
   _wutime64(wpath.get(), &times);
 #else
 #if __APPLE__
-  struct timespec times[] = {stat.st_atimespec, stat.st_mtimespec};
+  struct utimbuf times = {stat.st_atimespec, stat.st_mtimespec};
 #elif __SWITCH__
-  struct timespec times[] = {stat.st_atime, stat.st_mtime};
+  struct utimbuf times = {stat.st_atime, stat.st_mtime};
+#elif __MINGW32__
+  struct utimbuf times = {stat.st_atime, stat.st_mtime};
 #else
-  struct timespec times[] = {stat.st_atim, stat.st_mtim};
+  struct utimbuf times = {stat.st_atim, stat.st_mtim};
 #endif
-  utimensat(AT_FDCWD, path.c_str(), times, 0);
+  utime(path.c_str(), &times);
 #endif
 }
 

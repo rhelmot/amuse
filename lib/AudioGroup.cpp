@@ -256,6 +256,11 @@ std::string AudioGroupDatabase::exportCHeader(std::string_view projectName, std:
   localtime_r(&curTime, &curTm);
   char curTmStr[26];
   asctime_r(&curTm, curTmStr);
+#elif defined(__MINGW32__)
+  struct tm curTm;
+  localtime_s(&curTm, &curTime);
+  char curTmStr[26];
+  asctime_s(curTmStr, 26, &curTm);
 #else
   struct tm curTm;
   localtime_s(&curTm, &curTime);

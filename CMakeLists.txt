@@ -23,6 +23,8 @@ endif()
 
 option(AMUSE_BUILD_EDITOR "Build Amuse with editor enabled (includes VST)" ON)
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/bintocHelpers.cmake)
+
 add_library(amuse
   lib/AudioGroup.cpp
   lib/AudioGroupData.cpp
@@ -147,16 +149,20 @@ if(TARGET boo AND NOT WINDOWS_STORE AND NOT NX)
   # Multi-platform CLI tools
 
   # Player
+  set(CMAKE_CXX_STANDARD_LIBRARIES "-lksuser -lole32")
   add_executable(amuseplay WIN32 driver/amuseplay.cpp)
   target_link_libraries(amuseplay amuse logvisor)
+  install(TARGETS amuseplay)
 
   # Converter
   add_executable(amuseconv driver/amuseconv.cpp)
   target_link_libraries(amuseconv amuse logvisor)
+  install(TARGETS amuseconv)
 
   # Renderer
   add_executable(amuserender driver/amuserender.cpp)
   target_link_libraries(amuserender amuse logvisor)
+  install(TARGETS amuserender)
 
   if(COMMAND add_sanitizers)
     add_sanitizers(amuseplay)

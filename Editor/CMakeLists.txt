@@ -59,6 +59,7 @@ add_executable(amuse-gui WIN32 MACOSX_BUNDLE
 
   ${QM_FILES}
 )
+install(TARGETS amuse-gui)
 
 target_compile_definitions(amuse-gui PRIVATE
   # Disable implicit conversions from ASCII to QString.

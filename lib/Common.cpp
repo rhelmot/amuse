@@ -1,6 +1,6 @@
 #include "amuse/Common.hpp"
 
-#ifndef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include <cstdio>
 #include <memory>
 #else
@@ -12,6 +12,7 @@
 #endif
 #include <Windows.h>
 #endif
+#include <sys/utime.h>
 
 #include <logvisor/logvisor.hpp>
 
@@ -21,7 +22,7 @@ namespace amuse {
 static logvisor::Module Log("amuse");
 
 bool Copy(const char* from, const char* to) {
-#if _WIN32
+#if _WIN32 && !defined(__MINGW32__)
   const nowide::wstackstring wfrom(from);
   const nowide::wstackstring wto(to);
   return CopyFileW(wfrom.get(), wto.get(), FALSE) != 0;
@@ -44,18 +45,20 @@ bool Copy(const char* from, const char* to) {
   if (::stat(from, &theStat))
     return true;
 #if __APPLE__
-  struct timespec times[] = {theStat.st_atimespec, theStat.st_mtimespec};
+  struct utimbuf times = {theStat.st_atimespec, theStat.st_mtimespec};
 #elif __SWITCH__
-  struct timespec times[] = {theStat.st_atime, theStat.st_mtime};
+  struct utimbuf times = {theStat.st_atime, theStat.st_mtime};
+#elif __MINGW32__
+  struct utimbuf times = {theStat.st_atime, theStat.st_mtime};
 #else
-  struct timespec times[] = {theStat.st_atim, theStat.st_mtim};
+  struct utimbuf times = {theStat.st_atim, theStat.st_mtim};
 #endif
-  utimensat(AT_FDCWD, to, times, 0);
+  utime(to, &times);
   return true;
 #endif
 }
 
-#if _WIN32
+#if _WIN32 && !defined(__MINGW32__)
 int Rename(const char* oldpath, const char* newpath) {
   const nowide::wstackstring woldpath(oldpath);
   const nowide::wstackstring wnewpath(newpath);

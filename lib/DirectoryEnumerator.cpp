@@ -1,4 +1,4 @@
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include <windows.h>
 #include <cstdio>
 #else
@@ -27,7 +27,7 @@ DirectoryEnumerator::DirectoryEnumerator(std::string_view path, Mode mode, bool 
     return;
   }
 
-#if _WIN32
+#if _WIN32 && !defined(__MINGW32__)
   std::wstring wc = nowide::widen(path);
   wc += L"/*";
   WIN32_FIND_DATAW d;

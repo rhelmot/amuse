@@ -1,9 +1,9 @@
-add_executable(amuse-mkqticon mkqticon.c)
-target_link_libraries(amuse-mkqticon ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
+#add_executable(amuse-mkqticon mkqticon.c)
+#target_link_libraries(amuse-mkqticon ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
 
 macro(declare_qticon_target)
 add_custom_command(OUTPUT ${amuse_BINARY_DIR}/Editor/platforms/freedesktop/mainicon_qt.bin
-                   COMMAND $<TARGET_FILE:amuse-mkqticon>
+                   COMMAND amuse-mkqticon.exe
                    ARGS ${amuse_BINARY_DIR}/Editor/platforms/freedesktop/mainicon_qt.bin
                    DEPENDS
                    ${amuse_SOURCE_DIR}/Editor/platforms/freedesktop/128x128/apps/amuse-gui.png

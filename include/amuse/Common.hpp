@@ -12,7 +12,7 @@
 #include <athena/DNA.hpp>
 #include <logvisor/logvisor.hpp>
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 #include <strings.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -322,7 +322,7 @@ inline typename std::enable_if_t<!std::is_base_of_v<IObj, Tp>, ObjToken<Tp>> Mak
 #endif
 #endif
 
-#if _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 static inline int Mkdir(const char* path, int) {
   const nowide::wstackstring str(path);
   return _wmkdir(str.get());
@@ -333,6 +333,11 @@ static inline int Stat(const char* path, Sstat* statout) {
   const nowide::wstackstring wpath(path);
   return _wstat64(wpath.get(), statout);
 }
+#elif defined(__MINGW32__)
+static inline int Mkdir(const char* path, mode_t mode) { return mkdir(path); }
+
+typedef struct stat Sstat;
+static inline int Stat(const char* path, Sstat* statout) { return stat(path, statout); }
 #else
 static inline int Mkdir(const char* path, mode_t mode) { return mkdir(path, mode); }
 
@@ -340,14 +345,14 @@ typedef struct stat Sstat;
 static inline int Stat(const char* path, Sstat* statout) { return stat(path, statout); }
 #endif
 
-#if _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 int Rename(const char* oldpath, const char* newpath);
 #else
 inline int Rename(const char* oldpath, const char* newpath) { return rename(oldpath, newpath); }
 #endif
 
 inline int CompareCaseInsensitive(const char* a, const char* b) {
-#if _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
   return _stricmp(a, b);
 #else
   return strcasecmp(a, b);
@@ -404,7 +409,7 @@ inline int64_t FTell(FILE* fp) {
 }
 
 inline FILE* FOpen(const char* path, const char* mode) {
-#if _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
   const nowide::wstackstring wpath(path);
   const nowide::wshort_stackstring wmode(mode);
   FILE* fp = _wfopen(wpath.get(), wmode.get());
@@ -419,7 +424,7 @@ inline FILE* FOpen(const char* path, const char* mode) {
 }
 
 inline void Unlink(const char* file) {
-#if _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
   const nowide::wstackstring wfile(file);
   _wunlink(wfile.get());
 #else
